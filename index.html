@@ -6,7 +6,6 @@
   <title>GKN OPERATING SYSTEM - TERMINAL</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
-    /* Black Ops CRT Theme */
     :root {
       --crt-green: #00ff66;
       --crt-bg: #050b05;
@@ -29,7 +28,7 @@
       overflow-x: hidden;
     }
 
-    /* Scanline overlay effect */
+    /* Scanline effect */
     body::before {
       content: " ";
       display: block;
@@ -62,7 +61,7 @@
       margin-right: 0.5rem;
     }
 
-    input[type="text"] {
+    input[type="text"], textarea {
       background: transparent;
       border: none;
       color: var(--crt-green);
@@ -72,58 +71,121 @@
       flex-grow: 1;
       text-shadow: 0 0 5px rgba(0, 255, 102, 0.7);
     }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      border: 1px dashed var(--crt-green);
+      padding: 10px;
+      margin-top: 10px;
+      resize: vertical;
+    }
   </style>
+  <!-- Load WebAssembly C++ Compiler Engine (JSCPP) -->
+  <script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
 </head>
 <body>
 
   <div class="terminal-header">
     <p>LOGON: MASON, A.</p>
     <p>SYSTEM: CENTRAL INTELLIGENCE AGENCY DATA TERMINAL</p>
-    <p>TYPE 'HELP' FOR AVAILABLE COMMANDS.</p>
+    <p>TYPE 'HELP' FOR COMMANDS OR 'COMPILER' TO ENTER CODE EDITOR.</p>
   </div>
 
   <div id="output"></div>
 
-  <div class="input-line">
-    <span class="prompt">CIA&gt;</span>
+  <div class="input-line" id="prompt-container">
+    <span class="prompt" id="prompt-label">CIA&gt;</span>
     <input type="text" id="command-input" autofocus autocomplete="off" spellcheck="false">
   </div>
 
   <script>
     const input = document.getElementById('command-input');
     const output = document.getElementById('output');
+    const promptLabel = document.getElementById('prompt-label');
+    
+    let mode = 'terminal'; // 'terminal' or 'compiler'
 
-    // Simple Command Processing
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
-        const cmd = input.value.trim().toLowerCase();
-        printLine(`CIA> ${input.value}`);
+        const cmd = input.value.trim();
+        printLine(`${promptLabel.textContent} ${cmd}`);
         input.value = '';
 
-        switch(cmd) {
-          case 'help':
-            printLine("  CAT    - Read system files");
-            printLine("  WHOAMI - Display current agent session");
-            printLine("  CLEAR  - Clear terminal display");
-            printLine("  RUN    - Run interactive tool");
-            break;
-          case 'whoami':
-            printLine("  AGENT: Alex Mason | STATUS: ACTIVE");
-            break;
-          case 'clear':
-            output.innerHTML = '';
-            break;
-          case 'cat info.txt':
-            printLine("  Project Terminal: Built and hosted via GitHub Pages.");
-            break;
-          default:
-            if(cmd !== '') {
-              printLine(`  Unknown command: '${cmd}'. Type 'HELP' for commands.`);
-            }
+        if (mode === 'terminal') {
+          handleTerminalCommand(cmd.toLowerCase());
         }
-        window.scrollTo(0, document.body.scrollHeight);
       }
     });
+
+    function handleTerminalCommand(cmd) {
+      switch(cmd) {
+        case 'help':
+          printLine("  COMPILER - Switch to C++ compiler execution mode");
+          printLine("  WHOAMI   - Display current agent session");
+          printLine("  CLEAR    - Clear terminal display");
+          break;
+        case 'whoami':
+          printLine("  AGENT: Alex Mason | STATUS: ACTIVE");
+          break;
+        case 'clear':
+          output.innerHTML = '';
+          break;
+        case 'compiler':
+          launchCompilerUI();
+          break;
+        default:
+          if (cmd !== '') {
+            printLine(`  Unknown command: '${cmd}'. Type 'HELP' for commands.`);
+          }
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function launchCompilerUI() {
+      printLine("  [SYSTEM]: Initializing C++ WebAssembly Engine...");
+      printLine("  [SYSTEM]: Enter your C++ code below and click 'RUN EXECUTE':");
+
+      // Build code container
+      const editorDiv = document.createElement('div');
+      editorDiv.innerHTML = `
+        <textarea id="cpp-code">#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello from Mason\\'s BO1 Terminal!" << endl;
+    return 0;
+}</textarea>
+        <button id="run-btn" style="background: var(--crt-green); color: black; font-family: 'VT323'; font-size: 1.2rem; padding: 5px 15px; border: none; cursor: pointer; margin-top: 5px;">[ RUN EXECUTE ]</button>
+      `;
+      output.appendChild(editorDiv);
+
+      document.getElementById('run-btn').addEventListener('click', runCppCode);
+    }
+
+    function runCppCode() {
+      const code = document.getElementById('cpp-code').value;
+      printLine("\n--- COMPILING & EXECUTING ---");
+
+      let outputBuffer = "";
+      const config = {
+        stdio: {
+          write: function(str) {
+            outputBuffer += str;
+          }
+        }
+      };
+
+      try {
+        // Run code via in-browser C++ engine
+        const exitCode = JSCPP.run(code, "", config);
+        printLine(outputBuffer || "[Program finished with no output]");
+        printLine(`--- PROCESS FINISHED (EXIT CODE: ${exitCode}) ---\n`);
+      } catch (err) {
+        printLine(`[COMPILE/RUNTIME ERROR]: ${err.message}`);
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+    }
 
     function printLine(text) {
       const line = document.createElement('div');
