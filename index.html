@@ -6,9 +6,11 @@
   <title>GKN OPERATING SYSTEM - TERMINAL</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
+    /* Black Ops CRT Theme Setup */
     :root {
       --crt-green: #00ff66;
       --crt-bg: #050b05;
+      --crt-dim: #009933;
     }
 
     * {
@@ -28,7 +30,7 @@
       overflow-x: hidden;
     }
 
-    /* Scanline effect */
+    /* Scanline overlay effect */
     body::before {
       content: " ";
       display: block;
@@ -74,14 +76,32 @@
 
     textarea {
       width: 100%;
-      height: 180px;
+      height: 220px;
       border: 1px dashed var(--crt-green);
       padding: 10px;
       margin-top: 10px;
       resize: vertical;
     }
+
+    .btn {
+      background: var(--crt-green);
+      color: #050b05;
+      font-family: 'VT323', monospace;
+      font-size: 1.3rem;
+      font-weight: bold;
+      padding: 6px 16px;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      text-shadow: none;
+    }
+
+    .btn:hover {
+      background: #ffffff;
+    }
   </style>
-  <!-- Load WebAssembly C++ Compiler Engine (JSCPP) -->
+
+  <!-- JSCPP Engine Script -->
   <script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
 </head>
 <body>
@@ -89,7 +109,7 @@
   <div class="terminal-header">
     <p>LOGON: MASON, A.</p>
     <p>SYSTEM: CENTRAL INTELLIGENCE AGENCY DATA TERMINAL</p>
-    <p>TYPE 'HELP' FOR COMMANDS OR 'COMPILER' TO ENTER CODE EDITOR.</p>
+    <p>TYPE 'HELP' FOR COMMANDS OR 'COMPILER' TO ENTER C++ EXECUTION MODE.</p>
   </div>
 
   <div id="output"></div>
@@ -103,27 +123,22 @@
     const input = document.getElementById('command-input');
     const output = document.getElementById('output');
     const promptLabel = document.getElementById('prompt-label');
-    
-    let mode = 'terminal'; // 'terminal' or 'compiler'
 
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         const cmd = input.value.trim();
-        printLine(`${promptLabel.textContent} ${cmd}`);
+        printLine(`CIA> ${cmd}`);
         input.value = '';
-
-        if (mode === 'terminal') {
-          handleTerminalCommand(cmd.toLowerCase());
-        }
+        handleTerminalCommand(cmd.toLowerCase());
       }
     });
 
     function handleTerminalCommand(cmd) {
       switch(cmd) {
         case 'help':
-          printLine("  COMPILER - Switch to C++ compiler execution mode");
-          printLine("  WHOAMI   - Display current agent session");
-          printLine("  CLEAR    - Clear terminal display");
+          printLine("  COMPILER - Launch live C++ code editor & runner");
+          printLine("  WHOAMI   - Display current active agent session");
+          printLine("  CLEAR    - Clear terminal screen output");
           break;
         case 'whoami':
           printLine("  AGENT: Alex Mason | STATUS: ACTIVE");
@@ -143,20 +158,19 @@
     }
 
     function launchCompilerUI() {
-      printLine("  [SYSTEM]: Initializing C++ WebAssembly Engine...");
-      printLine("  [SYSTEM]: Enter your C++ code below and click 'RUN EXECUTE':");
+      printLine("  [SYSTEM]: Initializing C++ Engine...");
+      printLine("  [SYSTEM]: Edit C++ code below and click [ RUN EXECUTE ]:");
 
-      // Build code container
       const editorDiv = document.createElement('div');
       editorDiv.innerHTML = `
         <textarea id="cpp-code">#include <iostream>
 using namespace std;
 
 int main() {
-    cout << "Hello from Mason\\'s BO1 Terminal!" << endl;
+    cout << "Welcome to Mason's Terminal Compiler!" << endl;
     return 0;
 }</textarea>
-        <button id="run-btn" style="background: var(--crt-green); color: black; font-family: 'VT323'; font-size: 1.2rem; padding: 5px 15px; border: none; cursor: pointer; margin-top: 5px;">[ RUN EXECUTE ]</button>
+        <button id="run-btn" class="btn">[ RUN EXECUTE ]</button>
       `;
       output.appendChild(editorDiv);
 
@@ -177,9 +191,11 @@ int main() {
       };
 
       try {
-        // Run code via in-browser C++ engine
+        if (typeof JSCPP === 'undefined') {
+          throw new Error("JSCPP library failed to load from CDN. Check your connection.");
+        }
         const exitCode = JSCPP.run(code, "", config);
-        printLine(outputBuffer || "[Program finished with no output]");
+        printLine(outputBuffer || "[Program executed with no output]");
         printLine(`--- PROCESS FINISHED (EXIT CODE: ${exitCode}) ---\n`);
       } catch (err) {
         printLine(`[COMPILE/RUNTIME ERROR]: ${err.message}`);
