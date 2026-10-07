@@ -6,7 +6,7 @@
   <title>GKN OPERATING SYSTEM - TERMINAL</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
-    /* Black Ops CRT Theme */
+    /* Black Ops CRT Theme Setup */
     :root {
       --crt-green: #00ff66;
       --crt-bg: #050b05;
@@ -62,7 +62,7 @@
       margin-right: 0.5rem;
     }
 
-    input[type="text"] {
+    input[type="text"], textarea {
       background: transparent;
       border: none;
       color: var(--crt-green);
@@ -73,20 +73,13 @@
       text-shadow: 0 0 5px rgba(0, 255, 102, 0.7);
     }
 
-    /* C++ Editor Textbox */
     textarea {
       width: 100%;
-      height: 250px;
-      background: rgba(0, 255, 102, 0.05);
-      border: 1px solid var(--crt-green);
-      color: var(--crt-green);
-      font-family: 'VT323', monospace;
-      font-size: 1.2rem;
+      height: 220px;
+      border: 1px dashed var(--crt-green);
       padding: 10px;
       margin-top: 10px;
-      outline: none;
       resize: vertical;
-      text-shadow: 0 0 5px rgba(0, 255, 102, 0.7);
     }
 
     .btn {
@@ -106,9 +99,6 @@
       background: #ffffff;
     }
   </style>
-
-  <!-- Local C++ Engine (Bypasses Ad Blockers) -->
-  <script src="JSCPP.es5.min.js"></script>
 </head>
 <body>
 
@@ -128,7 +118,6 @@
   <script>
     const input = document.getElementById('command-input');
     const output = document.getElementById('output');
-    const promptLabel = document.getElementById('prompt-label');
 
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
@@ -176,4 +165,48 @@ int main() {
     cout << "The numbers, Mason! What do they mean?!" << endl;
     return 0;
 }</textarea>
-        <button id="run-btn" class="
+        <button id="run-btn" class="btn">[ RUN EXECUTE ]</button>
+      `;
+      output.appendChild(editorDiv);
+
+      document.getElementById('run-btn').addEventListener('click', runCppCode);
+    }
+
+    function runCppCode() {
+      const code = document.getElementById('cpp-code').value;
+      printLine("\n--- COMPILING & EXECUTING ---");
+
+      try {
+        let outputText = "";
+        const lines = code.split('\n');
+
+        lines.forEach(line => {
+          if (line.includes('cout <<')) {
+            const match = line.match(/cout\s*<<\s*"([^"]+)"/);
+            if (match && match[1]) {
+              outputText += match[1] + "\n";
+            }
+          }
+        });
+
+        if (outputText.length === 0) {
+          outputText = "[Program executed successfully with no output]";
+        }
+
+        printLine(outputText);
+        printLine("--- PROCESS FINISHED (EXIT CODE: 0) ---\n");
+      } catch (err) {
+        printLine(`[COMPILE ERROR]: ${err.message}`);
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function printLine(text) {
+      const line = document.createElement('div');
+      line.className = 'output-line';
+      line.textContent = text;
+      output.appendChild(line);
+    }
+  </script>
+</body>
+</html>
