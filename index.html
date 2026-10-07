@@ -101,8 +101,13 @@
     }
   </style>
 
-  <!--  unpkg.com -->
-  <<script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
+  <!-- Clean Script Tags with CDN Fallback -->
+  <script src="https://unpkg.com/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
+  <script>
+    if (typeof JSCPP === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"><\/script>');
+    }
+  </script>
 </head>
 <body>
 
@@ -192,7 +197,7 @@ int main() {
 
       try {
         if (typeof JSCPP === 'undefined') {
-          throw new Error("JSCPP library failed to load from CDN. Check your connection.");
+          throw new Error("JSCPP library failed to load. Please check your browser extensions/ad blockers.");
         }
         const exitCode = JSCPP.run(code, "", config);
         printLine(outputBuffer || "[Program executed with no output]");
