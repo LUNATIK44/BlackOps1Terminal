@@ -6,7 +6,6 @@
   <title>GKN OPERATING SYSTEM - TERMINAL</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
-    /* Black Ops CRT Theme Setup */
     :root {
       --crt-green: #00ff66;
       --crt-bg: #050b05;
@@ -29,7 +28,7 @@
       overflow-x: hidden;
     }
 
-    /* Scanline overlay effect */
+    /* Scanlines Overlay */
     body::before {
       content: " ";
       display: block;
@@ -55,29 +54,32 @@
     .input-line {
       display: flex;
       align-items: center;
+      gap: 0.5rem;
       margin-top: 1rem;
     }
 
     .prompt {
-      margin-right: 0.5rem;
+      white-space: nowrap;
     }
 
     input[type="text"], textarea {
-      background: transparent;
-      border: none;
+      background: rgba(0, 255, 102, 0.05);
+      border: 1px solid var(--crt-green);
       color: var(--crt-green);
       font-family: 'VT323', monospace;
       font-size: 1.4rem;
       outline: none;
-      flex-grow: 1;
+      padding: 4px 8px;
       text-shadow: 0 0 5px rgba(0, 255, 102, 0.7);
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
     }
 
     textarea {
       width: 100%;
       height: 220px;
-      border: 1px dashed var(--crt-green);
-      padding: 10px;
       margin-top: 10px;
       resize: vertical;
     }
@@ -86,12 +88,11 @@
       background: var(--crt-green);
       color: #050b05;
       font-family: 'VT323', monospace;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: bold;
-      padding: 6px 16px;
+      padding: 4px 12px;
       border: none;
       cursor: pointer;
-      margin-top: 10px;
       text-shadow: none;
     }
 
@@ -113,20 +114,36 @@
   <div class="input-line" id="prompt-container">
     <span class="prompt" id="prompt-label">CIA&gt;</span>
     <input type="text" id="command-input" autofocus autocomplete="off" spellcheck="false">
+    <button id="submit-btn" class="btn">EXECUTE</button>
   </div>
 
   <script>
     const input = document.getElementById('command-input');
     const output = document.getElementById('output');
+    const submitBtn = document.getElementById('submit-btn');
 
+    // Run command on Enter key
     input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        const cmd = input.value.trim();
-        printLine(`CIA> ${cmd}`);
-        input.value = '';
-        handleTerminalCommand(cmd.toLowerCase());
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        e.preventDefault();
+        processCommand();
       }
     });
+
+    // Run command on Execute button click
+    submitBtn.addEventListener('click', function() {
+      processCommand();
+    });
+
+    function processCommand() {
+      const cmd = input.value.trim();
+      if (cmd === '') return;
+      
+      printLine(`CIA> ${cmd}`);
+      input.value = '';
+      handleTerminalCommand(cmd.toLowerCase());
+      input.focus();
+    }
 
     function handleTerminalCommand(cmd) {
       switch(cmd) {
@@ -145,9 +162,7 @@
           launchCompilerUI();
           break;
         default:
-          if (cmd !== '') {
-            printLine(`  Unknown command: '${cmd}'. Type 'HELP' for commands.`);
-          }
+          printLine(`  Unknown command: '${cmd}'. Type 'HELP' for commands.`);
       }
       window.scrollTo(0, document.body.scrollHeight);
     }
@@ -157,6 +172,7 @@
       printLine("  [SYSTEM]: Edit C++ code below and click [ RUN EXECUTE ]:");
 
       const editorDiv = document.createElement('div');
+      editorDiv.style.margin = "10px 0";
       editorDiv.innerHTML = `
         <textarea id="cpp-code">#include <iostream>
 using namespace std;
@@ -165,7 +181,7 @@ int main() {
     cout << "The numbers, Mason! What do they mean?!" << endl;
     return 0;
 }</textarea>
-        <button id="run-btn" class="btn">[ RUN EXECUTE ]</button>
+        <button id="run-btn" class="btn" style="margin-top:8px;">[ RUN EXECUTE ]</button>
       `;
       output.appendChild(editorDiv);
 
